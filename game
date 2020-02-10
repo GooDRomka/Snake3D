@@ -1,0 +1,366 @@
+String AppName="SNAKE3D";
+
+int length;
+int time;
+int speed=10;
+boolean visible=false;
+boolean paused=false;
+int bColor=color(0, 0, 255, 20);
+int tColor=color(160, 160, 160);
+int bColorOver=color(0, 0, 255, 80);
+int tColorOver=color(200, 200, 240);
+cell[] a=new cell[64];
+cell direction=new cell(1, 0, 0, 0);
+Button start, menu, back, info;
+Slider c1, c2, c3, c4, s1, s2, s3, s4, bc, bs, tc, ts, Bs, sp;
+int mode=0; //0 - main menu; 1 - game; 2 - endgame; 3 - submenu; 4 - info;
+
+class cell {
+private int x, y, z, type;
+public cell(int x1, int y1, int z1, int type1) {
+this.x=x1;
+this.y=y1;
+this.z=z1;
+this.type=type1;
+}
+public cell() {
+this.x=0;
+this.y=0;
+this.z=0;
+this.type=2;
+}
+public void setType(int type1) {
+this.type=type1;
+}
+public void add(cell A) {
+this.x+=A.getX();
+this.y+=A.getY();
+this.z+=A.getZ();
+}
+public cell copy() {
+return new cell(this.x, this.y, this.z, this.type);
+}
+public int getType() {
+return this.type;
+}
+public int getX() {
+return this.x;
+}
+public int getY() {
+return this.y;
+}
+public int getZ() {
+return this.z;
+}
+public int compareTo(cell A) {
+if ((this.x==A.getX())&&(this.y==A.getY())&&(this.z==A.getZ())) return A.type;
+else return -1;
+}
+public void draw() {
+pushMatrix();
+if (this.type==2) fill(c3.value*360, 100, s3.value*100);
+if (this.type==3) fill(c4.value*360, 100, s4.value*100);
+translate(this.x*(Bs.value*40+20), this.y*(Bs.value*40+20), this.z*(Bs.value*40+20));
+box((Bs.value*40+20));
+popMatrix();
+}
+}
+
+class Button {
+public boolean visible;
+private int left, top, right, bottom, Color, textColor;
+private String text;
+public Button(int left, int top, int right, int bottom, String text) {
+this.left=left;
+this.top=top;
+this.right=right;
+this.bottom=bottom;
+this.text=text;
+this.Color=bColor;
+this.textColor=tColor;
+this.visible=true;
+}
+public boolean isOver() {
+if (!this.visible) return false;
+else {
+if ((mouseX>this.left)&&(mouseX<right)&&
+(mouseY>this.top)&&(mouseY<bottom)) {
+this.textColor=tColorOver;
+this.Color=bColorOver;
+return true;
+} else {
+this.textColor=tColor;
+this.Color=bColor;
+return false;
+}
+}
+}
+public boolean isClicked() {
+if ((this.isOver())&&(mousePressed)&&(frameCount-time>40)) {
+time=frameCount;
+return true;
+} else return false;
+}
+public void draw() {
+this.isOver();
+if (this.visible) {
+fill(Color);
+rect(this.left, this.top, this.right-this.left, this.bottom-this.top);
+fill(textColor);
+text(this.text, (this.left+this.right-textWidth(this.text))/2, this.top*0.2+this.bottom*0.8);
+}
+}
+}
+
+class Slider {
+public boolean visible;
+public float value;
+private int left, y, right;
+public Slider(int left, int y, int right, float x) {
+this.left=left;
+this.y=y;
+this.right=right;
+this.visible=true;
+this.value=x;
+}
+public boolean isOver() {
+if (!this.visible) return false;
+else {
+if ((mouseX>this.left)&&(mouseX<this.right)&&
+(mouseY>this.y-10)&&(mouseY<this.y+10))
+return true;
+else return false;
+}
+}
+public boolean isClicked() {
+if ((this.isOver())&&(mousePressed)) {
+value=(mouseX-this.left)/(float)(this.right-this.left);
+return true;
+} else return false;
+}
+public void draw() {
+if (this.visible) {
+this.isClicked();
+fill(128);
+rect(this.left, this.y-2, this.right-this.left, 4);
+fill(color(0, 0, 255));
+ellipse(this.left+(this.right-this.left)*value, this.y, 10, 10);
+fill(tc.value*360, 100, ts.value*100);
+}
+}
+}
+
+void box1(float x, float y, float z) {
+pushMatrix();
+translate(x, y, z);
+box((Bs.value*40+20));
+popMatrix();
+}
+
+void setup() {
+size(1280, 720, P3D);
+colorMode(HSB, 360, 100, 100);
+frameRate(60);
+textSize(180);
+length=3;
+a[0]=new cell(0, 0, 0, 1);
+a[1]=new cell(1, 0, 0, 1);
+a[2]=new cell(2, 0, 0, 1);
+a[3]=new cell(round(random(15)-8), round(random(15)-8), round(random(15)-8), 3);
+start=new Button(width/2-100, 300, width/2+100, 360, "Start game");
+menu= new Button(width/2-100, 400, width/2+100, 460, "Settings");
+info= new Button(width/2-100, 500, width/2+100, 560, "About");
+c1=new Slider((width-250)/2, height/3, (width+250)/2, 0);
+s1=new
+
+Slider((width-250)/2, height/3+30, (width+250)/2, 1);
+c2=new Slider((width-250)/2, height/3+60, (width+250)/2, 0);
+s2=new Slider((width-250)/2, height/3+90, (width+250)/2, 0.71);
+c3=new Slider((width-250)/2, height/3+120, (width+250)/2, 0.16);
+s3=new Slider((width-250)/2, height/3+150, (width+250)/2, 1);
+c4=new Slider((width-250)/2, height/3+180, (width+250)/2, 0.66);
+s4=new Slider((width-250)/2, height/3+210, (width+250)/2, 1);
+bc=new Slider((width-250)/2, height/3+240, (width+250)/2, 0);
+bs=new Slider((width-250)/2, height/3+270, (width+250)/2, 0);
+tc=new Slider((width-250)/2, height/3+300, (width+250)/2, 0);
+ts=new Slider((width-250)/2, height/3+330, (width+250)/2, 1);
+Bs=new Slider((width-250)/2, height/3+360, (width+250)/2, 0.4);
+sp=new Slider((width-250)/2, height/3+390, (width+250)/2, 0.8);
+}
+
+void move() {
+if ((frameCount%(int)((1-sp.value)*35+5)==0)&&(!paused)) {
+if (a[0].type==2) {
+length+=1;
+a[0].setType(1);
+a[length]=a[length-1].copy();
+a[length-1]=a[length-2].copy();
+a[length-1].add(direction);
+} else {
+for (int i=0; i<length-1; i++) {
+a[i]=a[i+1].copy();
+a[i+1].setType(1);
+}
+a[length-1].add(direction);
+if (a[length-1].compareTo(a[length])==3) {
+a[length-1].type=2;
+a[length]=new cell(round(random(16)-8), round(random(16)-8), round(random(16)-8), 3);
+}
+}
+}
+for (int i=0; i<=length; i++) {
+fill((c2.value+(float)i*(c1.value-c2.value)/length)*360, 100,
+(s2.value+(float)i*(s1.value-s2.value)/length)*100);
+a[i].draw();
+for (int j=0; j<=length-1; j++)
+if ((i!=j)&&(a[i].compareTo(a[j])!=-1)) {
+a=new cell[64];
+length=3;
+a[0]=new cell(0, 0, 0, 2);
+a[1]=new cell(1, 0, 0, 1);
+a[2]=new cell(2, 0, 0, 1);
+a[3]=new cell(round(random(15)-8), round(random(15)-8), round(random(15)-8), 3);
+delay(3000);
+}
+}
+}
+
+void keyPressed() {
+switch (key) {
+case 'v':
+visible=!visible;
+if (visible) speed=20;
+else speed=10;
+break;
+case 'a':
+if (direction.getX()!=1) direction=new cell(-1, 0, 0, 0);
+break;
+case 'd':
+if (direction.getX()!=-1) direction=new cell(1, 0, 0, 0);
+break;
+case 'w':
+if (direction.getY()!=1) direction=new cell(0, -1, 0, 0);
+break;
+case 's':
+if (direction.getY()!=-1) direction=new cell(0, 1, 0, 0);
+break;
+case 'o':
+if (direction.getZ()!=1) direction=new cell(0, 0, -1, 0);
+break;
+case 'p':
+if (direction.getZ()!=-1) direction=new cell(0, 0, 1, 0);
+break;
+case 'F':
+a[0].setType(2);
+break;
+}
+}
+
+void draw() {
+background(bc.value*360, 100, bs.value*100);
+fill(tc.value*360, 100, ts.value*100);
+if (mode==0) {
+textSize(180);
+text(AppName, (width-textWidth(AppName))/2, 250);
+textSize(30);
+menu.draw();
+info.draw();
+start.draw();
+if (start.isClicked()) {
+mode=1;
+paused=false;
+start.visible=false;
+menu= new Button(width-60, 0, width, 60, "M");
+back=new Button(width-120, 0, width-60, 60, "||");
+}
+if (menu.isClicked()) {
+paused=!paused;
+menu.top=100;
+menu.bottom=160;
+menu.text="Back to main";
+mode=2;
+}
+}
+if (mode==1) {
+textSize(30);
+menu.draw();
+back.draw();
+if (back.isClicked()) {
+paused=!paused;
+if (back.text=="||") back.text="►";
+else back.text="||";
+}
+if (menu.isClicked()) {
+mode=0;
+start.visible=true;
+menu= new Button(width/2-100, 400, width/2+100, 460, "Settings");
+}
+if (frameCount<370) a[0].setType(2);
+pushMatrix();
+fill(tc.value*360, 100, ts.value*100);
+text("Score: "+(length), 0, 40);
+translate(width/2, height/2, -height/2);
+rotateX(-PI/6);
+rotateY(PI/4);
+move();
+noFill();
+stroke(220, 10);
+if (visible) {
+float boxsize=(Bs.value*40+20);
+for (int i=-16; i<17; i++) {
+box1(i*boxsize, a[length-1].getY()*boxsize, a[length-1].getZ()*boxsize);
+box1(a[length-1].getX()*boxsize, i*boxsize, a[length-1].getZ()*boxsize);
+box1(a[length-1].getX()*boxsize, a[length-1].getY()*boxsize, i*boxsize);
+
+box1(i*boxsize, a[length].getY()*boxsize, a[length].getZ()*boxsize);
+box1(a[length].getX()*boxsize, i*boxsize, a[length].getZ()*boxsize);
+box1(a[length].getX()*boxsize, a[length].getY()*boxsize, i*boxsize);
+}
+}
+popMatrix();
+}
+if (mode==2) {
+paused=true;
+textSize(30);
+menu.draw();
+textSize(15);
+c1.draw();
+
+text("Snake head color (Hue)="+(int)(c1.value*360), c1.right+40, c1.y);
+s1.draw();
+text("Snake head color (Saturation)="+(int)(s1.value*100), s1.right+40, s1.y);
+c2.draw();
+text("Snake tail color (Hue)="+(int)(c2.value*360), c2.right+40, c2.y);
+s2.draw();
+text("Snake tail color (Saturation)="+(int)(s2.value*100), s2.right+40, s2.y);
+c3.draw();
+text("Eaten food color (Hue)="+(int)(c3.value*360), c3.right+40, c3.y);
+s3.draw();
+text("Eaten food color (Saturation)="+(int)(s3.value*360), s3.right+40, s3.y);
+c4.draw();
+text("Food color (Hue)="+(int)(c4.value*360), c4.right+40, c4.y);
+s4.draw();
+text("Food color (Saturation)="+(int)(s4.value*360), s4.right+40, s4.y);
+bc.draw();
+text("Background color (Hue)="+(int)(bc.value*360), bc.right+40, bc.y);
+bs.draw();
+text("Background color (Saturation)="+(int)(bs.value*360), bs.right+40, bs.y);
+tc.draw();
+text("Text color (Hue)="+(int)(tc.value*360), tc.right+40, tc.y);
+ts.draw();
+text("Text color (Saturation)="+(int)(ts.value*360), ts.right+40, ts.y);
+Bs.draw();
+text("Box size="+(int)(Bs.value*40+20)+" pixels.", Bs.right+40, Bs.y);
+sp.draw();
+text("Snake speed=1 step per "+(int)((1-sp.value)*35+5)+" frames.", sp.right+40, sp.y);
+
+if (menu.isClicked()) {
+mode=0;
+menu= new Button(width/2-100, 400, width/2+100, 460, "Settings");
+}
+translate(width/6, height/2, -height/2);
+rotateX(-PI/6);
+rotateY(PI/4);
+move();
+}
+}
